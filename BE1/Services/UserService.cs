@@ -30,20 +30,17 @@ namespace BE1.Services
             await _usersCollection.InsertOneAsync(user);
             return user;
         }
-
         public async Task<bool> DeleteUser(string id)
         {
             var result = await _usersCollection.DeleteOneAsync(user => user.Id == id);
             return result.DeletedCount > 0;
         }
 
-
         public async Task<User> GetUserById(string id)
         {
             var user = await _usersCollection.Find(user => user.Id == id).FirstOrDefaultAsync();
             return user;
         }
-
         public async Task<bool> UpdateUser(string id, UserDto userDto)
         {
             var update = Builders<User>.Update.Set(u => u.Name, userDto.Name);

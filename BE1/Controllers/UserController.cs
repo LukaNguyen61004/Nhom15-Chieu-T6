@@ -20,8 +20,7 @@ namespace BE1.Controllers
         {
             _userService = userService;
         }
-        /// <summary>Lấy danh sách tất cả người dùng</summary>
-        /// <response code="200">Trả về danh sách người dùng</response>
+
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<User>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll()
@@ -61,10 +60,6 @@ namespace BE1.Controllers
             return Ok(new { success = true, message = "Cập nhật thành công" });
         }
 
-        /// <summary>Xóa người dùng</summary>
-        /// <param name="id">MongoDB ObjectId</param>
-        /// <response code="200">Xóa thành công</response>
-        /// <response code="404">Không tìm thấy</response>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
