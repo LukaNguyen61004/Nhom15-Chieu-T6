@@ -5,6 +5,10 @@ using BE1.Services.Interface;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var mongoUri = Environment.GetEnvironmentVariable("MONGODB_URI");
+if (!string.IsNullOrEmpty(mongoUri))
+    builder.Configuration["MongoDbSettings:ConnectionString"] = mongoUri;
+
 builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDbSettings"));
 
 builder.Services.AddScoped<IUserService, UserService>();
@@ -37,7 +41,6 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = string.Empty; // Swagger tại http://localhost:5000
 });
 
-app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
