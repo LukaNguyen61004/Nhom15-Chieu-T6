@@ -4,7 +4,7 @@ import { HiOutlineUser } from 'react-icons/hi2';
 
 const UserCard = ({ user, onEdit, onDelete }) => {
   // Generate random avatar color
-  const avatarColors = ['#7781ec', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
+  const avatarColors = ['#5764f2', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
   const randomColor = avatarColors[Math.floor(Math.random() * avatarColors.length)];
 
   return (
