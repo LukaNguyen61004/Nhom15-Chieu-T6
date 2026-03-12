@@ -1,14 +1,15 @@
-name: CI/CD - BE1 Deploy to Render
+name: CI/CD - BE2 Deploy to Render
 
 on:
   push:
-    branches: [main]           # Deploy khi merge vào main
+    [cite_start]
+    branches: [main]           # Deploy khi merge vào main [cite: 1]
     paths:
-      - "BE1/**"               # Chỉ trigger khi có thay đổi trong folder BE1
+      - [cite_start]"BE2/**"               # Chỉ trigger khi có thay đổi trong folder BE2 [cite: 1]
   pull_request:
     branches: [main]
     paths:
-      - "BE1/**"               # Chỉ chạy CI khi PR có thay đổi trong BE1
+      - [cite_start]"BE2/**"               # Chỉ chạy CI khi PR có thay đổi trong BE2 [cite: 1, 2]
 
 jobs:
   # ─── JOB 1: Build & Test ────────────────────────────────────────────────────
@@ -20,30 +21,31 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup .NET 8
-        uses: actions/setup-dotnet@v4
+      - name: Setup Node.jsa
+        uses: actions/setup-node@v4
         with:
-          dotnet-version: "8.0.x"
+          node-version: "20.x" # Sử dụng Node.js bản LTS mới nhất
 
-      - name: Restore dependencies
-        working-directory: BE1
-        run: dotnet restore
+      - name: Install dependencies
+        working-directory: BE2
+        run: npm install
 
-      - name: Build
-        working-directory: BE1
-        run: dotnet build --no-restore --configuration Release
+      # Bỏ comment phần dưới này nếu dự án Node.js của bạn có bước build (ví dụ dùng Babel hoặc TypeScript)
+      # - name: Build
+      #   working-directory: BE2
+      #   run: npm run build
 
-      # Bỏ comment nếu có project test
+      # Bỏ comment nếu bạn có viết Unit Test bằng Jest/Mocha
       # - name: Run Tests
-      #   working-directory: BE1
-      #   run: dotnet test --no-build --configuration Release --verbosity normal
+      #   working-directory: BE2
+      #   run: npm test
 
   # ─── JOB 2: Deploy lên Render ───────────────────────────────────────────────
   deploy:
     name: 🚀 Deploy to Render
     runs-on: ubuntu-latest
-    needs: build                            # Chỉ deploy khi build thành công
-    if: github.ref == 'refs/heads/main'     # Chỉ deploy khi push/merge vào main
+    [cite_start]needs: build                            # Chỉ deploy khi build thành công [cite: 4]
+    [cite_start]if: github.ref == 'refs/heads/main'     # Chỉ deploy khi push/merge vào main [cite: 4]
 
     steps:
       - name: Trigger Render Deploy Hook
@@ -51,13 +53,11 @@ jobs:
           HTTP_CODE=$(curl -s -o response.json -w "%{http_code}" \
             --request POST \
             "${{ secrets.RENDER_DEPLOY_HOOK_URL }}")
-
-          echo "HTTP Status: $HTTP_CODE"
+          echo "HTTP Status: $HTTP_CODE" [cite: 5]
           cat response.json
 
           if [ "$HTTP_CODE" -ne 200 ] && [ "$HTTP_CODE" -ne 201 ]; then
-            echo "❌ Deploy thất bại! HTTP status: $HTTP_CODE"
-            exit 1
+            [cite_start]echo "❌ Deploy thất bại! HTTP status: $HTTP_CODE" [cite: 6]
+            [cite_start]exit 1 [cite: 6]
           fi
-
-          echo "✅ Deploy trigger thành công!"
+          [cite_start]echo "✅ Deploy trigger thành công!" [cite: 6]
