@@ -1,58 +1,69 @@
 const User = require('../models/User');
 
-// GET /users — Lấy tất cả users
+// 1. Lấy tất cả User (GET /users)
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.find();
-    res.json({ success: true, data: users });
+    res.status(200).json(users); // Show thẳng mảng dữ liệu ra trình duyệt
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ message: err.message });
   }
 };
 
-// GET /users/:id — Lấy 1 user
+// 2. Lấy 1 User theo ID số (GET /users/:id)
 exports.getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
-    res.json({ success: true, data: user });
+    const user = await User.findOne({ id: Number(req.params.id) });
+    if (!user) return res.status(404).json({ message: 'Không tìm thấy user' });
+    res.status(200).json(user);
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ message: err.message });
   }
 };
 
-// POST /users — Tạo user mới
+// 3. Tạo User mới (POST /users)
 exports.createUser = async (req, res) => {
   try {
-    const user = await User.create({ name: req.body.name });
-    res.status(201).json({ success: true, data: user });
+    // Tìm ID lớn nhất hiện có để tự tăng (Auto-increment)
+    const lastUser = await User.findOne({}, {}, { sort: { 'id': -1 } });
+    const nextId = lastUser ? lastUser.id + 1 : 1;
+
+    const newUser = new User({
+      id: nextId,
+      name: req.body.name,
+      username: req.body.username,
+      email: req.body.email
+    });
+
+    const savedUser = await newUser.save();
+    res.status(201).json(savedUser);
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    res.status(400).json({ message: err.message });
   }
 };
 
-// PUT /users/:id — Cập nhật user
+// 4. Cập nhật User (PUT /users/:id)
 exports.updateUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { name: req.body.name },
-      { new: true, runValidators: true }
+    const updatedUser = await User.findOneAndUpdate(
+      { id: Number(req.params.id) },
+      req.body,
+      { new: true }
     );
-    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
-    res.json({ success: true, data: user });
+    if (!updatedUser) return res.status(404).json({ message: 'Không thấy user để sửa' });
+    res.status(200).json(updatedUser);
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    res.status(400).json({ message: err.message });
   }
 };
 
-// DELETE /users/:id — Xoá user
+// 5. Xóa User (DELETE /users/:id)
 exports.deleteUser = async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
-    res.json({ success: true, message: 'User deleted' });
+    const deletedUser = await User.findOneAndDelete({ id: Number(req.params.id) });
+    if (!deletedUser) return res.status(404).json({ message: 'Không thấy user để xóa' });
+    res.status(200).json({ message: 'Đã xóa thành công' });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({ message: err.message });
   }
 };
