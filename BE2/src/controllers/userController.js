@@ -3,13 +3,20 @@ const User = require('../models/User');
 // 1. Lấy tất cả User (GET /users)
 exports.getAllUsers = async (req, res) => {
   try {
+    console.log("Đang gọi hàm getAllUsers..."); // Thêm dòng này
+    
     const users = await User.find();
-    res.status(200).json(users); // Show thẳng mảng dữ liệu ra trình duyệt
+    console.log("Dữ liệu từ DB:", users); 
+    
+    if (users.length === 0) {
+      return res.status(200).send("Kết nối DB thành công nhưng danh sách đang TRỐNG.");
+    }
+    
+    return res.status(200).json(users);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    return res.status(500).json({ error: err.message });
   }
 };
-
 // 2. Lấy 1 User theo ID số (GET /users/:id)
 exports.getUserById = async (req, res) => {
   try {
