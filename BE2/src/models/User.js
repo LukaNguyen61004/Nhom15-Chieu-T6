@@ -2,19 +2,30 @@ const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
   id: { type: Number, required: true }, // BẮT BUỘC PHẢI CÓ DÒNG NÀY
-  name: {
+  username: {
     type: String,
     required: [true, 'Name is required'],
     trim: true,
   },
-  roleId: {
-  type: String, // Liên kết với _id của bảng Role
-  default: "ID_CỦA_QUYỀN_USER_MẶC_ĐỊNH" // Tốt nhất nên để mặc định ai tạo tài khoản cũng là User bình thường
-  },
   role: {
     type: String,
-    enum: ['user', 'mod', 'admin'], // Tùy chọn: Ép chỉ được nhập 3 chữ này
+    enum: ['user',  'admin'], 
     default: 'user'
+  },
+  email: {
+  type: String,
+  required: [true, 'Email không được để trống'],
+  unique: true,      
+  lowercase: true,   
+  trim: true
+  },
+password: {
+    type: String,
+    required: [true, 'Mật khẩu không được để trống']
+  },
+  avatar: {
+    type: String,
+    default: 'https://i.pravatar.cc/150' // Ảnh mặc định nếu user chưa tải lên
   },
 }, {
   timestamps: true,
