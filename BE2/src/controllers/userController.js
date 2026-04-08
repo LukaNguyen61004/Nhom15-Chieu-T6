@@ -19,24 +19,20 @@ exports.getUserById = async (req, res) => {
   try {
     const user = await User.findOne({ id: Number(req.params.id) });
     if (!user) return res.status(404).json({ message: 'Không tìm thấy user' });
-    res.status(200).json(user);
+res.status(200).json({ success: true, data: user }); 
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
 // 3. Tạo User mới (POST /users)
 exports.createUser = async (req, res) => {
   try {
-    // 1. Tìm người có ID lớn nhất (id: -1 nghĩa là xếp từ lớn đến bé)
-    const lastUser = await User.findOne().sort({ id: -1 });
-    
-    // 2. Nếu đã có người (lastUser), lấy id của họ + 1. Nếu chưa có ai, bắt đầu từ 1.
-    const nextId = (lastUser && typeof lastUser.id === 'number') ? lastUser.id + 1 : 1;
+    const {id, username, email} = req.body;
 
     const newUser = new User({
-      id: nextId, 
-      name: req.body.name,
+      id: nextId,
+      username: req.body.username,
       email: req.body.email
     });
 
