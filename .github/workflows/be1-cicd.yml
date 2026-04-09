@@ -1,15 +1,14 @@
-name: CI/CD - BE2 Deploy to Render
+name: CI/CD - BE1(Backend Users) Deploy to Render
 
 on:
   push:
-    [cite_start]
-    branches: [main]           # Deploy khi merge vào main [cite: 1]
+    branches: [main]
     paths:
-      - [cite_start]"BE2/**"               # Chỉ trigger khi có thay đổi trong folder BE2 [cite: 1]
+      - "BE1/**"
   pull_request:
     branches: [main]
     paths:
-      - [cite_start]"BE2/**"               # Chỉ chạy CI khi PR có thay đổi trong BE2 [cite: 1, 2]
+      - "BE1/**"
 
 jobs:
   # ─── JOB 1: Build & Test ────────────────────────────────────────────────────
@@ -21,31 +20,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.jsa
-        uses: actions/setup-node@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
         with:
-          node-version: "20.x" # Sử dụng Node.js bản LTS mới nhất
+          dotnet-version: "8.0.x"
 
-      - name: Install dependencies
-        working-directory: BE2
-        run: npm install
+      - name: Restore dependencies
+        working-directory: BE1
+        run: dotnet restore
 
-      # Bỏ comment phần dưới này nếu dự án Node.js của bạn có bước build (ví dụ dùng Babel hoặc TypeScript)
-      # - name: Build
-      #   working-directory: BE2
-      #   run: npm run build
-
-      # Bỏ comment nếu bạn có viết Unit Test bằng Jest/Mocha
-      # - name: Run Tests
-      #   working-directory: BE2
-      #   run: npm test
+      - name: Build
+        working-directory: BE1
+        run: dotnet build --no-restore --configuration Release
 
   # ─── JOB 2: Deploy lên Render ───────────────────────────────────────────────
   deploy:
     name: 🚀 Deploy to Render
     runs-on: ubuntu-latest
-    [cite_start]needs: build                            # Chỉ deploy khi build thành công [cite: 4]
-    [cite_start]if: github.ref == 'refs/heads/main'     # Chỉ deploy khi push/merge vào main [cite: 4]
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
       - name: Trigger Render Deploy Hook
@@ -53,11 +46,22 @@ jobs:
           HTTP_CODE=$(curl -s -o response.json -w "%{http_code}" \
             --request POST \
             "${{ secrets.RENDER_DEPLOY_HOOK_URL }}")
-          echo "HTTP Status: $HTTP_CODE" [cite: 5]
+
+          echo "HTTP Status: $HTTP_CODE"
           cat response.json
 
           if [ "$HTTP_CODE" -ne 200 ] && [ "$HTTP_CODE" -ne 201 ]; then
-            [cite_start]echo "❌ Deploy thất bại! HTTP status: $HTTP_CODE" [cite: 6]
-            [cite_start]exit 1 [cite: 6]
+            echo "❌ Deploy thất bại! HTTP status: $HTTP_CODE"
+            exit 1
           fi
-          [cite_start]echo "✅ Deploy trigger thành công!" [cite: 6]
+
+          echo "✅ Deploy trigger thành công!"
+
+      - name: Notify deploy status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "🎉 Pipeline hoàn tất - BE1 đã được deploy lên Render."
+          else
+            echo "🚨 Pipeline thất bại - kiểm tra logs ở bước trên."
+          fi
