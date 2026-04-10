@@ -1,11 +1,11 @@
 // ─── API SERVICE LAYER ────────────────────────────────────────────────────────
 import { MOCK_POSTS, MOCK_COMMENTS } from "../constants/mockData";
 
-function normalizeBaseUrl(baseUrl) {
-  const trimmed = String(baseUrl || "").replace(/\/+$/, "");
-  if (!trimmed) return "/api";
-  if (trimmed.endsWith("/api")) return trimmed;
-  return `${trimmed}/api`;
+function normalizeBaseUrl(raw) {
+  const url = String(raw || "").replace(/\/+$/, "");
+  if (!url) return "/api";
+  if (url.endsWith("/api")) return url;
+  return `${url}/api`;
 }
 
 const RAW_BASE_URL =

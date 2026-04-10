@@ -3,12 +3,13 @@ import { useState } from "react";
 import { AppShell } from "./components/layout";
 import { useCurrentUser, useNotifications } from "./hooks";
 
-import FeedPage          from "./pages/FeedPage";
-import DetailPage        from "./pages/DetailPage";
-import { TrendingPage }  from "./pages/TrendingPage";
+import FeedPage from "./pages/FeedPage";
+import DetailPage from "./pages/DetailPage";
+import { TrendingPage } from "./pages/TrendingPage";
 import NotificationsPage from "./pages/NotificationsPage";
-import ProfilePage       from "./pages/ProfilePage";
-import EditorPage        from "./pages/EditorPage";
+import ProfilePage from "./pages/ProfilePage";
+import EditorPage from "./pages/EditorPage";
+import AuthPage from './pages/AuthPage';
 
 const TAB_PAGES = ["feed", "trending", "notifications"];
 
@@ -19,8 +20,12 @@ export default function App() {
   const { user: currentUser } = useCurrentUser();
   const { notifs, unreadCount, markRead, markAllRead } = useNotifications();
 
-  // Nếu chưa đăng nhập, show trang auth
-  
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    return <AuthPage onSuccess={() => window.location.reload()} />;
+  }
+
 
   function navigate(page) {
     setActivePage(page);
@@ -37,12 +42,12 @@ export default function App() {
       return <DetailPage post={detailPost} onBack={() => setDetailPost(null)} />;
     }
     switch (activePage) {
-      case "feed":          return <FeedPage onOpenPost={openPost} />;
-      case "trending":      return <TrendingPage onOpenPost={openPost} />;
+      case "feed": return <FeedPage onOpenPost={openPost} />;
+      case "trending": return <TrendingPage onOpenPost={openPost} />;
       case "notifications": return <NotificationsPage />;
-      case "profile":       return <ProfilePage onOpenPost={openPost} />;
-      case "editor":        return <EditorPage onSuccess={() => navigate("feed")} />;
-      default:              return <FeedPage onOpenPost={openPost} />;
+      case "profile": return <ProfilePage onOpenPost={openPost} />;
+      case "editor": return <EditorPage onSuccess={() => navigate("feed")} />;
+      default: return <FeedPage onOpenPost={openPost} />;
     }
   }
 

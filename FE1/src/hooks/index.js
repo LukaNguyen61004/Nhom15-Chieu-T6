@@ -52,13 +52,32 @@ export function useAuth() {
   async function login(email, password) {
     setLoading(true); setError(null);
     try {
-      const res = await authService.login({ email, password });
-      localStorage.setItem("token", res.token);
-      localStorage.setItem("user", JSON.stringify(res.user));
-      setUser(res.user);
-      return res.user;
+      // Backend nhận: { UsernameOrEmail, Password } (Pascal case)
+      const res = await authService.login({
+        UsernameOrEmail: email,
+        Password: password,
+      });
+
+      // Backend có thể trả token ở nhiều field khác nhau — thử hết
+      const token = res.token || res.accessToken || res.Token || res.AccessToken;
+      // User info có thể nằm ở res.user hoặc chính res
+      const user  = res.user || res.User || res.data || res;
+
+      if (!token) throw new Error("Không nhận được token từ server.");
+
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
+      setUser(user);
+
+      // Log để debug — xoá sau khi xác nhận hoạt động
+      console.log("[login] response:", res);
+      console.log("[login] token:", token);
+      console.log("[login] user:", user);
+
+      return user;
     } catch (err) {
-      setError("Đăng nhập thất bại. Kiểm tra lại email/password.");
+      console.error("[login] error:", err);
+      setError(err.message || "Đăng nhập thất bại. Kiểm tra lại email/password.");
     } finally {
       setLoading(false);
     }
@@ -67,10 +86,21 @@ export function useAuth() {
   async function register(data) {
     setLoading(true); setError(null);
     try {
-      const res = await authService.register(data);
-      return res.user;
+      // Backend yêu cầu bio/avatar/location là string (không được null)
+      const res = await authService.register({
+        Username: data.username,
+        Name:     data.name,
+        Email:    data.email,
+        Password: data.password,
+        Bio:      "",
+        Avatar:   "",
+        Location: "",
+      });
+      console.log("[register] response:", res);
+      return res.user || res.User || res.data || res;
     } catch (err) {
-      setError("Đăng ký thất bại. Email hoặc username đã tồn tại.");
+      console.error("[register] error:", err);
+      setError(err.message || "Đăng ký thất bại. Email hoặc username đã tồn tại.");
     } finally {
       setLoading(false);
     }
