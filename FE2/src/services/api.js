@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API = "https://xdpm-web-azqx.vercel.app";
+const API = "https://xdpm-web-be2.onrender.com";
 
 const instance = axios.create({
   baseURL: API,
