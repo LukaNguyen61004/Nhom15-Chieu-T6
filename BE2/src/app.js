@@ -49,3 +49,6 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on: http://localhost:${PORT}`);
   console.log(`API Docs available at: http://localhost:${PORT}/api-docs`);
 });
+app.get('/', (req, res) => {
+  res.redirect('/api-docs');
+});
