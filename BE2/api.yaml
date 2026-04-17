@@ -141,6 +141,7 @@ paths:
     delete:
       summary: Xóa người dùng
       tags: [Users]
+      
       parameters:
         - in: path
           name: id
@@ -167,6 +168,7 @@ paths:
     post:
       summary: Tạo một bài viết mới
       tags: [Posts]
+      
       requestBody:
         required: true
         content:
@@ -174,9 +176,8 @@ paths:
             schema:
               type: object
               properties:
-                authorId:
+                authorId:            
                   type: string
-                  description: "ID của tác giả (Lấy từ bảng Users)"
                 title:
                   type: string
                 slug:
@@ -218,6 +219,7 @@ paths:
     put:
       summary: Cập nhật bài viết
       tags: [Posts]
+      
       parameters:
         - in: path
           name: id
@@ -255,6 +257,7 @@ paths:
     delete:
       summary: Xóa mềm bài viết
       tags: [Posts]
+      
       parameters:
         - in: path
           name: id
@@ -270,7 +273,7 @@ paths:
   # ==========================================
   /comments:
     get:
-      summary: Lấy danh sách tất cả bình luận (Admin)
+      summary: Lấy danh sách tất cả bình luận 
       tags: [Comments]
       responses:
         200:
@@ -305,6 +308,7 @@ paths:
     delete:
       summary: Xóa bình luận (Admin)
       tags: [Comments]
+      
       parameters:
         - in: path
           name: id
@@ -359,3 +363,88 @@ paths:
       responses:
         200:
           description: Đã mở khóa thành công        
+# ==========================================
+# 5. TAGS API
+# ==========================================
+  /tags:
+    get:
+      summary: Lấy danh sách tất cả các Tag
+      tags: [Tags]
+      responses:
+        200:
+          description: Lấy danh sách thành công
+    post:
+      summary: Tạo một Tag mới
+      tags: [Tags]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: "Tên hiển thị của Tag (VD: Node.js)"
+                  example: "Node.js"
+                slug:
+                  type: string
+                  description: "Đường dẫn URL của Tag (VD: nodejs)"
+                  example: "nodejs"
+                description:
+                  type: string
+                  description: "Mô tả ngắn về Tag"
+                  example: "Mọi thứ về Node.js"
+      responses:
+        201:
+          description: Tạo Tag thành công
+        400:
+          description: Lỗi dữ liệu hoặc Tag (slug) đã tồn tại
+
+  /tags/{id}:
+    put:
+      summary: Cập nhật thông tin Tag
+      tags: [Tags]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                slug:
+                  type: string
+                description:
+                  type: string
+      responses:
+        200:
+          description: Cập nhật thành công
+        400:
+          description: Lỗi dữ liệu gửi lên
+        404:
+          description: Không tìm thấy Tag
+
+    delete:
+      summary: Xóa Tag
+      tags: [Tags]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Đã xóa Tag thành công
+        404:
+          description: Không tìm thấy Tag
+        500:
+          description: Lỗi server

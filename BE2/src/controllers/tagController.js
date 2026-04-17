@@ -9,7 +9,6 @@ exports.getAllTags = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 // Admin Tạo Tag mới
 exports.createTag = async (req, res) => {
   try {
@@ -22,7 +21,6 @@ exports.createTag = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
-
 // Admin Sửa Tag
 exports.updateTag = async (req, res) => {
   try {
@@ -38,7 +36,6 @@ exports.updateTag = async (req, res) => {
     res.status(400).json({ success: false, message: error.message });
   }
 };
-
 // Admin Xóa Tag
 exports.deleteTag = async (req, res) => {
   try {

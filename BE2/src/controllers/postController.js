@@ -30,11 +30,25 @@ exports.getPostById = async (req, res) => {
 // 3. Tạo bài viết mới (không cần tính nextId)
 exports.createPost = async (req, res) => {
   try {
-    const newPost = new Post(req.body);
-    const savedPost = await newPost.save();
-    res.status(201).json({ success: true, data: savedPost });
-  } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    
+    const { title, slug, content, coverImage, tags, status, visibility, authorId } = req.body;
+
+    
+    const newPost = new Post({
+      authorId: authorId, 
+      title: title,
+      slug: slug,
+      content: content,
+      coverImage: coverImage,
+      tags: tags,
+      status: status,
+      visibility: visibility
+    });
+
+    await newPost.save();
+    res.status(201).json({ success: true, data: newPost });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
   }
 };
 
