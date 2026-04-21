@@ -57,7 +57,6 @@ namespace BE1.Controllers
         }
 
         // POST api/auth/refresh
-        // Ưu tiên đọc từ cookie, fallback về body
         [HttpPost("refresh")]
         public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest? body)
         {
@@ -89,12 +88,10 @@ namespace BE1.Controllers
         {
             try
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+                var userId = User.FindFirstValue("user_id")!;
                 await _authService.LogoutAsync(userId);
 
-                // Xóa cookie
                 Response.Cookies.Delete("refresh_token");
-
                 return Ok(new { message = "Logged out successfully" });
             }
             catch (Exception ex)
@@ -103,17 +100,15 @@ namespace BE1.Controllers
             }
         }
 
-        // GET api/auth/me — đọc thông tin từ JWT claim (không query DB)
+        // GET api/auth/me
         [Authorize]
         [HttpGet("me")]
         public IActionResult Me()
         {
             return Ok(new
             {
-                id       = User.FindFirstValue(ClaimTypes.NameIdentifier),
-                username = User.FindFirstValue(ClaimTypes.Name),
-                email    = User.FindFirstValue(ClaimTypes.Email),
-                role     = User.FindFirstValue(ClaimTypes.Role)
+                id    = User.FindFirstValue("user_id"),
+                email = User.FindFirstValue("email")
             });
         }
     }
