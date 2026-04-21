@@ -17,7 +17,7 @@ namespace BE1.Controllers
             _userService = userService;
         }
 
-        private string? CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
+        private string? CurrentUserId => User.FindFirstValue("user_id");
 
         // ─── PUBLIC ───────────────────────────────────────────────────
 
