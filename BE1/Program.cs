@@ -9,21 +9,29 @@ using BE1.Services.Interfaces;
 using DotNetEnv;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.JsonWebTokens;
 using MongoDB.Driver;
+using System.IdentityModel.Tokens.Jwt;
 
 // ====================== LOAD .env ======================
 Env.Load();
 
+// Tắt claim mapping mặc định của JWT
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables();
+
+// ====================== CORS ======================
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.SetIsOriginAllowed(_ => true)  // ← cho phép MỌI origin kể cả null
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();             // ← cho phép gửi cookie (refresh token)
     });
 });
 
@@ -42,7 +50,7 @@ builder.Services.AddSingleton<IMongoClient>(sp =>
 builder.Services.AddSingleton(sp =>
 {
     var settings = sp.GetRequiredService<MongoDbSettings>();
-    var client = sp.GetRequiredService<IMongoClient>();
+    var client   = sp.GetRequiredService<IMongoClient>();
     return client.GetDatabase(settings.DatabaseName);
 });
 
@@ -53,39 +61,38 @@ var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
+    options.MapInboundClaims = false; // ← tắt map claim tự động
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = true,
+        ValidateIssuer           = false,
+        ValidateAudience         = false,
+        ValidateLifetime         = true,
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
-        ClockSkew = TimeSpan.Zero   // không cho phép trễ
+        IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+        ClockSkew                = TimeSpan.Zero
     };
 });
 
 builder.Services.AddAuthorization();
 
 // ====================== REPOSITORIES ======================
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserRepository,         UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-// Giữ lại các repository khác của project
-builder.Services.AddScoped<IPostRepository, PostRepository>();
-builder.Services.AddScoped<ITagRepository, TagRepository>();
-builder.Services.AddScoped<ICommentRepository, CommentRepository>();
-builder.Services.AddScoped<IReactionRepository, ReactionRepository>();
-builder.Services.AddScoped<IFollowRepository, FollowRepository>();
+builder.Services.AddScoped<IPostRepository,         PostRepository>();
+builder.Services.AddScoped<ITagRepository,          TagRepository>();
+builder.Services.AddScoped<ICommentRepository,      CommentRepository>();
+builder.Services.AddScoped<IReactionRepository,     ReactionRepository>();
+builder.Services.AddScoped<IFollowRepository,       FollowRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 
 // ====================== SERVICES ======================
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IUserService, UserService>();
-// Giữ lại các service khác của project
-builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<IAuthService,    AuthService>();
+builder.Services.AddScoped<IUserService,    UserService>();
+builder.Services.AddScoped<IPostService,    PostService>();
 builder.Services.AddScoped<ICommentService, CommentService>();
 
 // ====================== SWAGGER ======================
@@ -95,20 +102,19 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
     {
-        Title = "Blog Programming API",
-        Version = "v1",
+        Title       = "Blog Programming API",
+        Version     = "v1",
         Description = "RESTful API cho Blog sử dụng MongoDB"
     });
 
-    // Ô nhập Bearer token trong Swagger UI
     options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
-        Name = "Authorization",
-        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
-        Scheme = "bearer",
+        Name         = "Authorization",
+        Type         = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme       = "bearer",
         BearerFormat = "JWT",
-        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Nhập access token. Ví dụ: Bearer eyJhbGci..."
+        In           = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description  = "Nhập access token. Ví dụ: Bearer eyJhbGci..."
     });
 
     options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
@@ -147,8 +153,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowAll");
-app.UseAuthentication();   // ← phải trước UseAuthorization
+app.UseCors("AllowAll");     // ← phải trước Authentication
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
