@@ -7,12 +7,6 @@ export default defineConfig({
 
   server: {
     open: true,
-    proxy: {
-      "/api": {
-        target: "https://nhom15-chieu-t6.onrender.com",
-        changeOrigin: true,
-        secure: true,
-      },
-    },
+ 
   },
 })

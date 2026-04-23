@@ -1,49 +1,26 @@
-
-const BASE_URL = "https://nhom15-chieu-t6.onrender.com/api";
-
-function getCookie(name) {
-  return document.cookie
-    .split("; ")
-    .find(row => row.startsWith(name + "="))
-    ?.split("=")[1];
-}
+const BASE_URL = "http://localhost:3000";
 
 async function request(path, options = {}) {
-  const token = getCookie("access_token");
+  
+  const cleanPath = path.startsWith("/")
+    ? path.slice(1)
+    : path;
 
-  const headers = {
-    "Content-Type": "application/json",
-    ...options.headers,
-  };
-
-
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await fetch(`${BASE_URL}/api/${cleanPath}`, {
     credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
     ...options,
-    headers,
   });
-
-  if (!res.ok) {
-    let message = `API error ${res.status}: ${path}`;
-    try {
-      const data = await res.json();
-      if (data?.message) message = data.message;
-    } catch { }
-    throw new Error(message);
-  }
-  if (res.status === 204) return null;
-
 
   return res.json();
 }
 
 let cachedProfile = null;
 
-// ─── AUTH ─────────────────────────────────────────────────────
+// ─── AUTH ──────
 export const authService = {
   register: (data) =>
     request("/User/register", {
@@ -57,13 +34,13 @@ export const authService = {
       body: JSON.stringify(data),
     }),
 
-  logout: () =>
-    request("/User/logout", {
-      method: "POST",
-    }),
+logout: () =>
+  request("/auth/logout", {
+    method: "POST",
+  }),
 };
 
-// ─── USERS ────────────────────────────────────────────────────
+// ─── USERS ───────
 export const userService = {
   getById: (id) => request(`/User/${id}`),
 
@@ -79,26 +56,26 @@ export const userService = {
     return data;
   },
 
-  // optional: clear cache khi logout
+  // clear cache khi logout
   clearCache: () => {
     cachedProfile = null;
   },
 };
 
-// ─── POSTS ────────────────────────────────────────────────────
+// ─── POSTS ────
 export const postService = {
   getAll: () => request("/posts"),
 
   getById: (id) => request(`/posts/${id}`),
 
-  create: (data) =>
-    request("/posts", {
-      method: "POST",
-      headers: {
-        authorId: data.authorId,
-      },
-      body: JSON.stringify(data),
-    }),
+ create: (data) => {
+  const { authorId, ...safeData } = data; 
+
+  return request("/posts", {
+    method: "POST",
+    body: JSON.stringify(safeData),
+  });
+},
 
   update: (id, data) =>
     request(`/posts/${id}`, {
@@ -122,35 +99,28 @@ export const postService = {
   },
 };
 
-// ─── COMMENTS ─────────────────────────────────────────────────
+// ─── COMMENTS ───────
 export const commentService = {
   getByPost: (postId) => request(`/comments/post/${postId}`),
 
   getById: (id) => request(`/comments/${id}`),
 
-  create: (data) =>
-    request("/comments", {
-      method: "POST",
-      headers: {
-        authorId: data.authorId,
-      },
-      body: JSON.stringify(data),
-    }),
+  create: (data) => {
+  const { authorId, ...safeData } = data; 
+
+  return request("/comments", {
+    method: "POST",
+    body: JSON.stringify(safeData),
+  });
+},
 
   update: (id, data) =>
     request(`/comments/${id}`, {
-      method: "PUT",
-      headers: {
-        authorId: data.authorId,
-      },
-      body: JSON.stringify(data),
+      method: "PUT",body: JSON.stringify(data),
     }),
 
-  delete: (id, authorId) =>
-    request(`/comments/${id}`, {
-      method: "DELETE",
-      headers: {
-        authorId: authorId,
-      },
-    }),
+delete: (id) =>
+  request(`/comments/${id}`, {
+    method: "DELETE",
+  }),
 };

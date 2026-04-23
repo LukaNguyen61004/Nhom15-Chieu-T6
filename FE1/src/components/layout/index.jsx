@@ -8,6 +8,18 @@ import { useState } from "react";
 export function TopBar({ user, onNavigate, onLogout }) {
   const [open, setOpen] = useState(false);
 
+  const handleLogout = async () => {
+    try {
+      await authService.logout(); // gọi BE1
+
+      userService.clearCache(); // clear cache FE
+
+      window.location.href = "/login"; // redirect
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  };
+
   const initials =
     user?.initials ||
     user?.name?.charAt(0)?.toUpperCase() ||
@@ -56,7 +68,7 @@ export function TopBar({ user, onNavigate, onLogout }) {
                   <button onClick={() => onNavigate("profile")}>
                     Profile
                   </button>
-                  <button onClick={onLogout}>
+                  <button onClick={handleLogout}>
                     Logout
                   </button>
                 </div>

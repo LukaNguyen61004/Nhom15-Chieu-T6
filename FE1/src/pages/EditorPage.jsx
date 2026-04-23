@@ -66,7 +66,7 @@ export default function EditorPage({ onSuccess }) {
   );
 }
 
-// ─── FIELD ─────────────────────────
+// ─── FIELD ────
 
 function Field({ label, value, onChange }) {
   return (
